@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core & Auth
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  projects  Project[]
+  employees Employee[]
+  equipment Equipment[]
+  users     User[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      String   // ADMIN, PROJECT_MANAGER, HR, FINANCE
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+}
+
+// Project Management
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  location    String
+  type        String   // BATIMENT, INDUSTRIEL, HYDRAULIQUE
+  budget      Float
+  startDate   DateTime
+  endDate     DateTime?
+  progress    Float    @default(0)
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  tasks       Task[]
+  expenses    Expense[]
+  equipUsages EquipmentUsage[]
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  name        String
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  progress    Float    @default(0)
+  startDate   DateTime
+  endDate     DateTime?
+}
+
+// Finance
+model Expense {
+  id          String   @id @default(uuid())
+  amount      Float
+  category    String   // MATERIAL, LABOR, EQUIPMENT
+  date        DateTime
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+}
+
+// Human Resources
+model Employee {
+  id          String   @id @default(uuid())
+  firstName   String
+  lastName    String
+  role        String
+  specialty   String
+  salaryType  String   // HOURLY, MONTHLY
+  rate        Float
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  attendances Attendance[]
+}
+
+model Attendance {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  date        DateTime
+  checkIn     DateTime?
+  checkOut    DateTime?
+  status      String   // PRESENT, ABSENT
+}
+
+// Equipment Management
+model Equipment {
+  id          String   @id @default(uuid())
+  name        String
+  type        String
+  status      String   // AVAILABLE, IN_USE, BROKEN
+  dailyCost   Float
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  usages      EquipmentUsage[]
+}
+
+model EquipmentUsage {
+  id          String   @id @default(uuid())
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  startDate   DateTime
+  endDate     DateTime?
+}

@@ -1,0 +1,9 @@
+node_modules
+.env
+.next
+out
+build
+*.db
+*.log
+.DS_Store
+.antigravityignore
