@@ -2,11 +2,16 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../prismaClient');
 
-// GET all tasks (Global)
+// GET all tasks (filtered by project or company)
 router.get('/', async (req, res) => {
   try {
+    const { projectId, companyId } = req.query;
+    
     const tasks = await prisma.task.findMany({
-      include: { project: true },
+      where: {
+        ...(projectId ? { projectId } : {}),
+        ...(companyId ? { project: { companyId } } : {})
+      },
       orderBy: { startDate: 'desc' }
     });
     res.json(tasks);

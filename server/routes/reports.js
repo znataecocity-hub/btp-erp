@@ -5,10 +5,11 @@ const prisma = require('../prismaClient');
 // GET global project summary report
 router.get('/summary', async (req, res) => {
   try {
+    const { companyId } = req.query;
     const projects = await prisma.project.findMany({
+      where: companyId ? { companyId } : {},
       include: {
-        _count: { select: { tasks: true, expenses: true } },
-        expenses: { select: { amount: true } }
+        expenses: { select: { amount: true, category: true } }
       }
     });
 
@@ -20,7 +21,11 @@ router.get('/summary', async (req, res) => {
         progress: p.progress,
         budget: p.budget,
         spent: totalSpent,
-        efficiency: p.budget > 0 ? (totalSpent / p.budget) * 100 : 0
+        efficiency: p.budget > 0 ? (totalSpent / p.budget) * 100 : 0,
+        expenseBreakdown: p.expenses.reduce((acc, e) => {
+          acc[e.category] = (acc[e.category] || 0) + e.amount;
+          return acc;
+        }, {})
       };
     });
 
@@ -34,11 +39,13 @@ router.get('/summary', async (req, res) => {
 // GET financial overview (monthly expenses)
 router.get('/financial', async (req, res) => {
   try {
+    const { companyId } = req.query;
     const expenses = await prisma.expense.findMany({
-      select: { amount: true, date: true }
+      where: companyId ? { project: { companyId } } : {},
+      select: { amount: true, date: true },
+      orderBy: { date: 'asc' }
     });
 
-    // Simple grouping by month
     const monthly = expenses.reduce((acc, exp) => {
       const month = new Date(exp.date).toLocaleString('default', { month: 'short' });
       acc[month] = (acc[month] || 0) + exp.amount;
@@ -52,4 +59,27 @@ router.get('/financial', async (req, res) => {
   }
 });
 
+// GET equipment utilization
+router.get('/equipment-stats', async (req, res) => {
+  try {
+    const { companyId } = req.query;
+    const equipment = await prisma.equipment.findMany({
+      where: companyId ? { companyId } : {},
+      include: { _count: { select: { usages: true } } }
+    });
+
+    const stats = equipment.map(e => ({
+      name: e.name,
+      status: e.status,
+      usageCount: e._count.usages
+    }));
+
+    res.json(stats);
+  } catch (error) {
+    console.error("Error fetching equipment stats:", error);
+    res.status(500).json({ error: "Failed to fetch equipment stats" });
+  }
+});
+
 module.exports = router;
+

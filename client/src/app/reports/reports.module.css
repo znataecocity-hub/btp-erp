@@ -86,18 +86,33 @@
   gap: 1.5rem;
 }
 
-.chartPlaceholder {
-  height: 200px;
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.chartTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+}
+
+.chartWrapper {
+  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f8fafc;
-  border: 1px dashed var(--border-color);
-  color: var(--text-muted);
-  font-style: italic;
-  margin-top: 1rem;
+  min-height: 250px;
 }
 
 @media print {
-  .header button { display: none; }
+  .actions { display: none; }
 }
+
+@media (max-width: 1024px) {
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
+}
+

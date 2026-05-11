@@ -5,7 +5,9 @@ const prisma = require('../prismaClient');
 // GET all equipment
 router.get('/', async (req, res) => {
   try {
+    const { companyId } = req.query;
     const equipment = await prisma.equipment.findMany({
+      where: companyId ? { companyId } : {},
       orderBy: { name: 'asc' }
     });
     res.json(equipment);

@@ -9,6 +9,7 @@ export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [user, setUser] = useState(null);
   const [newProject, setNewProject] = useState({
     name: "",
     location: "",
@@ -18,12 +19,19 @@ export default function Projects() {
   });
 
   useEffect(() => {
-    fetchProjects();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      fetchProjects(parsedUser.companyId);
+    } else {
+      window.location.href = "/login";
+    }
   }, []);
 
-  const fetchProjects = async () => {
+  const fetchProjects = async (companyId) => {
     try {
-      const res = await fetch(`${API_URL}/projects`);
+      const res = await fetch(`${API_URL}/projects?companyId=${companyId}`);
       if (res.ok) {
         const data = await res.json();
         setProjects(data);
@@ -37,17 +45,19 @@ export default function Projects() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!user) return;
+
     try {
-      // Mock company ID for MVP
-      const payload = { ...newProject, companyId: "comp-1" };
+      const payload = { ...newProject, companyId: user.companyId };
       const res = await fetch(`${API_URL}/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+      
       if (res.ok) {
         setShowModal(false);
-        fetchProjects();
+        fetchProjects(user.companyId);
         setNewProject({ name: "", location: "", type: "BATIMENT", budget: "", startDate: "" });
       } else {
         const error = await res.json();
@@ -55,6 +65,7 @@ export default function Projects() {
       }
     } catch (error) {
       console.error("Failed to create project", error);
+      alert("Erreur de connexion au serveur");
     }
   };
 

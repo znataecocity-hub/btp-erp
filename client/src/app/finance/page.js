@@ -10,6 +10,7 @@ export default function Finance() {
   const [stats, setStats] = useState({ total: 0, byCategory: [] });
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [user, setUser] = useState(null);
   const [newExpense, setNewExpense] = useState({
     amount: "",
     category: "MATERIAL",
@@ -18,15 +19,22 @@ export default function Finance() {
   });
 
   useEffect(() => {
-    fetchData();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      fetchData(parsedUser.companyId);
+    } else {
+      window.location.href = "/login";
+    }
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (companyId) => {
     try {
       const [expRes, projRes, statsRes] = await Promise.all([
-        fetch(`${API_URL}/expenses`),
-        fetch(`${API_URL}/projects`),
-        fetch(`${API_URL}/expenses/stats`)
+        fetch(`${API_URL}/expenses?companyId=${companyId}`),
+        fetch(`${API_URL}/projects?companyId=${companyId}`),
+        fetch(`${API_URL}/expenses/stats?companyId=${companyId}`)
       ]);
       
       if (expRes.ok) setExpenses(await expRes.json());
@@ -41,6 +49,8 @@ export default function Finance() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!user) return;
+
     try {
       const res = await fetch(`${API_URL}/expenses`, {
         method: "POST",
@@ -49,7 +59,7 @@ export default function Finance() {
       });
       if (res.ok) {
         setShowModal(false);
-        fetchData();
+        fetchData(user.companyId);
         setNewExpense({ amount: "", category: "MATERIAL", date: new Date().toISOString().split('T')[0], projectId: "" });
       }
     } catch (error) {

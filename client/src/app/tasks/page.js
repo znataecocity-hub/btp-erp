@@ -7,14 +7,22 @@ import API_URL from "../../apiConfig";
 export default function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetchTasks();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      fetchTasks(parsedUser.companyId);
+    } else {
+      window.location.href = "/login";
+    }
   }, []);
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (companyId) => {
     try {
-      const res = await fetch(`${API_URL}/tasks`);
+      const res = await fetch(`${API_URL}/tasks?companyId=${companyId}`);
       if (res.ok) {
         const data = await res.json();
         setTasks(data);
@@ -27,6 +35,7 @@ export default function Tasks() {
   };
 
   const handleUpdateProgress = async (taskId, newProgress) => {
+    if (!user) return;
     try {
       const res = await fetch(`${API_URL}/tasks/${taskId}`, {
         method: "PUT",
@@ -34,7 +43,7 @@ export default function Tasks() {
         body: JSON.stringify({ progress: newProgress })
       });
       if (res.ok) {
-        fetchTasks();
+        fetchTasks(user.companyId);
       }
     } catch (error) {
       console.error("Failed to update progress", error);

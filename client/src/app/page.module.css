@@ -87,6 +87,14 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.chartContainer {
+  flex: 1;
+  min-height: 300px;
+  width: 100%;
 }
 
 .chartTitle {
@@ -98,16 +106,8 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.mockChart {
-  height: 300px;
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0) 100%);
-  border-radius: var(--radius-md);
-  border: 1px dashed var(--primary-blue-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-blue-light);
-  font-weight: 500;
+.alertItem.safe {
+  border-color: var(--status-success);
 }
 
 .alertsList {

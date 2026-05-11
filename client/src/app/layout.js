@@ -1,13 +1,14 @@
+"use client";
+
 import "./globals.css";
 import styles from "./layout.module.css";
 import Link from "next/link";
-
-export const metadata = {
-  title: "BTP ERP | Système de Gestion de Chantier",
-  description: "Solution complète pour les entreprises de construction",
-};
+import { usePathname } from "next/navigation";
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  const isAuthPage = pathname === "/login" || pathname === "/register";
+
   return (
     <html lang="fr">
       <head>
@@ -17,49 +18,55 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <div className={styles.layoutWrapper}>
-          {/* Sidebar */}
-          <aside className={styles.sidebar}>
-            <div className={styles.sidebarHeader}>
-              🏗️ BTP ERP
-            </div>
-            <nav className={styles.sidebarNav}>
-              <Link href="/" className={`${styles.navItem} ${styles.active}`}>
-                📊 Tableau de bord
-              </Link>
-              <Link href="/projects" className={styles.navItem}>
-                🏗️ Chantiers
-              </Link>
-              <Link href="/tasks" className={styles.navItem}>
-                ✅ Tâches & Avancement
-              </Link>
-              <Link href="/finance" className={styles.navItem}>
-                💰 Finance & Budget
-              </Link>
-              <Link href="/hr" className={styles.navItem}>
-                👷 Ressources Humaines
-              </Link>
-              <Link href="/equipment" className={styles.navItem}>
-                🚜 Matériel
-              </Link>
-              <Link href="/reports" className={styles.navItem}>
-                📈 Rapports
-              </Link>
-            </nav>
-          </aside>
+          {!isAuthPage && (
+            <aside className={styles.sidebar}>
+              <div className={styles.sidebarHeader}>
+                🏗️ BTP ERP
+              </div>
+              <nav className={styles.sidebarNav}>
+                <Link href="/" className={`${styles.navItem} ${pathname === "/" ? styles.active : ""}`}>
+                  📊 Tableau de bord
+                </Link>
+                <Link href="/projects" className={`${styles.navItem} ${pathname === "/projects" ? styles.active : ""}`}>
+                  🏗️ Chantiers
+                </Link>
+                <Link href="/tasks" className={`${styles.navItem} ${pathname === "/tasks" ? styles.active : ""}`}>
+                  ✅ Tâches & Avancement
+                </Link>
+                <Link href="/finance" className={`${styles.navItem} ${pathname === "/finance" ? styles.active : ""}`}>
+                  💰 Finance & Budget
+                </Link>
+                <Link href="/hr" className={`${styles.navItem} ${pathname === "/hr" ? styles.active : ""}`}>
+                  👷 Ressources Humaines
+                </Link>
+                <Link href="/equipment" className={`${styles.navItem} ${pathname === "/equipment" ? styles.active : ""}`}>
+                  🚜 Matériel
+                </Link>
+                <Link href="/reports" className={`${styles.navItem} ${pathname === "/reports" ? styles.active : ""}`}>
+                  📈 Rapports
+                </Link>
+              </nav>
+            </aside>
+          )}
 
           {/* Main Content Wrapper */}
-          <div className={styles.mainWrapper}>
+          <div className={isAuthPage ? styles.authWrapper : styles.mainWrapper}>
             {/* Top Navbar */}
-            <header className={styles.header}>
-              <div className={styles.headerTitle}>Vue d'ensemble</div>
-              <div className={styles.headerProfile}>
-                <span style={{ color: "var(--text-muted)", fontWeight: "500" }}>Admin System</span>
-                <div className={styles.profileAvatar}>AD</div>
-              </div>
-            </header>
+            {!isAuthPage && (
+              <header className={styles.header}>
+                <div className={styles.headerTitle}>
+                  {pathname === "/" ? "Vue d'ensemble" : 
+                   pathname.substring(1).charAt(0).toUpperCase() + pathname.substring(2)}
+                </div>
+                <div className={styles.headerProfile}>
+                  <span style={{ color: "var(--text-muted)", fontWeight: "500" }}>Admin System</span>
+                  <div className={styles.profileAvatar}>AD</div>
+                </div>
+              </header>
+            )}
 
             {/* Main Content */}
-            <main className={styles.mainContent}>
+            <main className={isAuthPage ? styles.authContent : styles.mainContent}>
               {children}
             </main>
           </div>
@@ -68,3 +75,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

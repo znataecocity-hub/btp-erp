@@ -5,7 +5,9 @@ const prisma = require('../prismaClient');
 // GET all expenses
 router.get('/', async (req, res) => {
   try {
+    const { companyId } = req.query;
     const expenses = await prisma.expense.findMany({
+      where: companyId ? { project: { companyId } } : {},
       include: { project: true },
       orderBy: { date: 'desc' }
     });
@@ -43,12 +45,17 @@ router.post('/', async (req, res) => {
 // GET expense stats (Total per category, Total per project)
 router.get('/stats', async (req, res) => {
   try {
+    const { companyId } = req.query;
+    const where = companyId ? { project: { companyId } } : {};
+
     const totalExpenses = await prisma.expense.aggregate({
+      where,
       _sum: { amount: true }
     });
 
     const byCategory = await prisma.expense.groupBy({
       by: ['category'],
+      where,
       _sum: { amount: true }
     });
 

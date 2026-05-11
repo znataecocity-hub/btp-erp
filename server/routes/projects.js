@@ -5,7 +5,10 @@ const prisma = require('../prismaClient');
 // GET all projects
 router.get('/', async (req, res) => {
   try {
+    const { companyId } = req.query;
+    
     const projects = await prisma.project.findMany({
+      where: companyId ? { companyId } : {},
       orderBy: { startDate: 'desc' }
     });
     res.json(projects);

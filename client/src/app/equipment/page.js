@@ -8,6 +8,7 @@ export default function Equipment() {
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [user, setUser] = useState(null);
   const [newEquipment, setNewEquipment] = useState({
     name: "",
     type: "MACHINERY",
@@ -16,12 +17,19 @@ export default function Equipment() {
   });
 
   useEffect(() => {
-    fetchEquipment();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      fetchEquipment(parsedUser.companyId);
+    } else {
+      window.location.href = "/login";
+    }
   }, []);
 
-  const fetchEquipment = async () => {
+  const fetchEquipment = async (companyId) => {
     try {
-      const res = await fetch(`${API_URL}/equipment`);
+      const res = await fetch(`${API_URL}/equipment?companyId=${companyId}`);
       if (res.ok) setEquipment(await res.json());
     } catch (error) {
       console.error("Failed to fetch equipment", error);
@@ -32,15 +40,17 @@ export default function Equipment() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!user) return;
+    
     try {
       const res = await fetch(`${API_URL}/equipment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newEquipment, companyId: "comp-1" })
+        body: JSON.stringify({ ...newEquipment, companyId: user.companyId })
       });
       if (res.ok) {
         setShowModal(false);
-        fetchEquipment();
+        fetchEquipment(user.companyId);
         setNewEquipment({ name: "", type: "MACHINERY", status: "AVAILABLE", dailyCost: "" });
       }
     } catch (error) {

@@ -8,6 +8,7 @@ export default function HR() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [user, setUser] = useState(null);
   const [newEmployee, setNewEmployee] = useState({
     firstName: "",
     lastName: "",
@@ -18,12 +19,19 @@ export default function HR() {
   });
 
   useEffect(() => {
-    fetchEmployees();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      fetchEmployees(parsedUser.companyId);
+    } else {
+      window.location.href = "/login";
+    }
   }, []);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (companyId) => {
     try {
-      const res = await fetch(`${API_URL}/hr/employees`);
+      const res = await fetch(`${API_URL}/hr/employees?companyId=${companyId}`);
       if (res.ok) setEmployees(await res.json());
     } catch (error) {
       console.error("Failed to fetch employees", error);
@@ -34,15 +42,17 @@ export default function HR() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (!user) return;
+    
     try {
       const res = await fetch(`${API_URL}/hr/employees`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newEmployee, companyId: "comp-1" })
+        body: JSON.stringify({ ...newEmployee, companyId: user.companyId })
       });
       if (res.ok) {
         setShowModal(false);
-        fetchEmployees();
+        fetchEmployees(user.companyId);
         setNewEmployee({ firstName: "", lastName: "", role: "WORKER", specialty: "", salaryType: "HOURLY", rate: "" });
       }
     } catch (error) {
